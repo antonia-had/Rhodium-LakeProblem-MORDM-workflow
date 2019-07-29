@@ -84,7 +84,10 @@ setup_cache(file="example.cache")
 # call to optimize is wrapped in a lambda function to enable lazy evaluation.
 output = cache("output", lambda: optimize(model, "NSGAII", 10000))
 
-#for i in range(len(output)):
-#    output[i]['strategy']=0
-#    dps_output[i]['strategy']=1
+for i in range(len(output)):
+    output[i]['strategy']=0
+    dps_output[i]['strategy']=1
 
+merged = DataSet(output+dps_output)
+
+J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))

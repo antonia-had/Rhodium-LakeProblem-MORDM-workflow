@@ -1,3 +1,8 @@
+'''
+This script is a copy of this one https://github.com/Project-Platypus/Rhodium/blob/master/examples/Basic/dps_example.py
+by Dave Hadka, with minor changes for training purposes. 
+'''
+
 import math
 import numpy as np
 import matplotlib as mpl
