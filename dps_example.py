@@ -135,6 +135,9 @@ dps_model.responses = [Response("max_P", Response.MINIMIZE),
 # Use our new DPS lever
 dps_model.levers = [CubicDPSLever("policy", length=3)]
 
+# Define any constraints (can reference any parameter or response by name)
+dps_model.constraints = [Constraint("reliability >= 0.95")]
+
 setup_cache(file="dps_example.cache")
 dps_output = cache("dps_output", lambda: optimize(dps_model, "NSGAII", 10000))
 with open("dps_output.csv","w") as f:

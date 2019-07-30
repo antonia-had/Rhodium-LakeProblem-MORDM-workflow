@@ -63,7 +63,7 @@ model.responses = [Response("max_P", Response.MINIMIZE),
                    Response("reliability", Response.MAXIMIZE)]
 
 # Define any constraints (can reference any parameter or response by name)
-#model.constraints = [Constraint("reliability >= 0.95")]
+model.constraints = [Constraint("reliability >= 0.95")]
 
 # Some parameters are levers that we control via our policy
 model.levers = [RealLever("pollution_limit", 0.0, 0.1, length=100)]
@@ -84,10 +84,37 @@ setup_cache(file="example.cache")
 # call to optimize is wrapped in a lambda function to enable lazy evaluation.
 output = cache("output", lambda: optimize(model, "NSGAII", 10000))
 
+#Save optimization results 
+output.save("output.csv") 
+#Save only the objectives from the optimization results 
+output.as_dataframe()[list(model.responses.keys())].to_csv('output_objectives.csv')
+
 for i in range(len(output)):
-    output[i]['strategy']=0
-    dps_output[i]['strategy']=1
+    output[i]['strategy']=1
+    dps_output[i]['strategy']=0
 
 merged = DataSet(output+dps_output)
 
-J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
+J3(merged.as_dataframe(list(dps_model.responses.keys())+['strategy']))
+
+SOWs = sample_lhs(model, 1000)
+reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
+reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
+
+for i in range(len(reevaluation)):
+    reevaluation[i].save("reevaluation_"+str(i)+".csv")
+    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
+
+robustness = np.zeros(len(output))
+robustness_dps = np.zeros(len(dps_output))
+
+for i in range(len(robustness)):
+    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
+    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+    
+for i in range(len(robustness)):
+    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
+    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+ 
+colnames = ['sol_no']+list(dps_model.responses.keys())+['strategy']    
+merged_sorted = load('overallreference.csv', names=colnames)[1]
