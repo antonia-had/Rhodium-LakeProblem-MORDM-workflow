@@ -200,3 +200,8 @@ reevaluation_dps_97.csv
 reevaluation_dps_98.csv
 reevaluation_dps_99.csv
 pareto.py
+*.dir
+*.dat
+*.dat
+dps_example.cache.dat
+example.cache.dat

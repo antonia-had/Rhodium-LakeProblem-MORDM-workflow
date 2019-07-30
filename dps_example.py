@@ -9,7 +9,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
-import json
 
 # Example using direct policy search (DPS) following the approach of [1]:
 #
@@ -24,6 +23,7 @@ import json
 class CubicDPSLever(Lever):
     
     def __init__(self, name, length = 1, c_bounds = (-2, 2), r_bounds = (0, 2)):
+    def __init__(self, name, length = 1, c_bounds = (-2, 2), r_bounds = (0.000001, 2)):
         super(CubicDPSLever, self).__init__(name)
         self.length = length
         self.c_bounds = c_bounds
@@ -37,7 +37,7 @@ class CubicDPSLever(Lever):
         for _ in range(self.length):
             result += [Real(self.c_bounds[0], self.c_bounds[1])] # the center
             result += [Real(self.r_bounds[0], self.r_bounds[1])] # the radius
-            result += [Real(0, 1)]                               # the weight
+            result += [Real(0.000001, 1)]                               # the weight
         
         return result
     
@@ -74,7 +74,7 @@ def evaluateCubicDPS(policy, current_value):
         value += rbf["weight"] * abs((current_value - rbf["center"]) / rbf["radius"])**3
         
     value = min(max(value, 0.01), 0.1)
-    return value    
+    return value      
 
 # Construct the lake problem
 def lake_problem_dps(policy,  # the DPS policy
@@ -145,7 +145,23 @@ dps_model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
 setup_cache(file="dps_example.cache")
-dps_output = cache("dps_output", lambda: optimize(dps_model, "NSGAII", 25000))
+dps_output = cache("dps_output", lambda: optimize(dps_model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001]))
 dps_output.save("dps_output.csv") 
+dps_output.as_dataframe()[list(dps_model.responses.keys())].to_csv('dps_output_objectives.csv')
+
+#dps_output=load("dps_output.csv")[1]
+#for i in range(len(dps_output)):
+#    dps_output[i]['policy']=ast.literal_eval(dps_output[i]['policy'])
+#SOWs=load("SOWs.csv")[1]
+#reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
+#
+#for i in range(len(reevaluation_dps)):
+#    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
+#
+#robustness_dps = np.zeros(len(dps_output))
+#
+#for i in range(len(robustness_dps)):
+#    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+
  
     
