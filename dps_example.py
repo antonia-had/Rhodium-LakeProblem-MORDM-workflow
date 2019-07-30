@@ -138,9 +138,14 @@ dps_model.levers = [CubicDPSLever("policy", length=3)]
 # Define any constraints (can reference any parameter or response by name)
 dps_model.constraints = [Constraint("reliability >= 0.95")]
 
+dps_model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
+                       UniformUncertainty("q", 2.0, 4.5),
+                       UniformUncertainty("mean", 0.01, 0.05),
+                       UniformUncertainty("stdev", 0.001, 0.005),
+                       UniformUncertainty("delta", 0.93, 0.99)]
+
 setup_cache(file="dps_example.cache")
-dps_output = cache("dps_output", lambda: optimize(dps_model, "NSGAII", 10000))
-with open("dps_output.csv","w") as f:
-    json.dump(dps_output, f)
+dps_output = cache("dps_output", lambda: optimize(dps_model, "NSGAII", 25000))
+dps_output.save("dps_output.csv") 
  
     
