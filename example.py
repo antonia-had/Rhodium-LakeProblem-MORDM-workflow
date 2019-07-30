@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
 from platypus import wrappers
+from j3 import J3
+
 
 # Construct the lake problem
 def lake_problem(pollution_limit,
@@ -90,27 +92,28 @@ output.save("output.csv")
 #Save only the objectives from the optimization results 
 output.as_dataframe()[list(model.responses.keys())].to_csv('output_objectives.csv')
 
-#dps_output=load("dps_output.csv")[1]
-#
-#for i in range(len(output)):
-#    output[i]['strategy']=1
-#    dps_output[i]['strategy']=0
-#
-#merged = DataSet(output+dps_output)
-#
-#J3(merged.as_dataframe(list(dps_model.responses.keys())+['strategy']))
-#
-#SOWs = sample_lhs(model, 1000)
-#SOWs.save("SOWs.csv") 
-#reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
-#
-#for i in range(len(reevaluation)):
-#    reevaluation[i].save("reevaluation_"+str(i)+".csv")
-#
-#robustness = np.zeros(len(output))
-#
-#for i in range(len(robustness)):
-#    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
+dps_output=load("dps_output.csv")[1]
+
+for i in range(len(output)):
+    output[i]['strategy']=1
+for i in range(len(dps_output)):
+    dps_output[i]['strategy']=0
+
+merged = DataSet(output+dps_output)
+
+J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
+
+SOWs = sample_lhs(model, 1000)
+SOWs.save("SOWs.csv") 
+reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
+
+for i in range(len(reevaluation)):
+    reevaluation[i].save("reevaluation_"+str(i)+".csv")
+
+robustness = np.zeros(len(output))
+
+for i in range(len(robustness)):
+    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
 # 
 ##colnames = ['sol_no']+list(dps_model.responses.keys())+['strategy']    
 ##merged_sorted = load('overallreference.csv', names=colnames)[1]

@@ -153,8 +153,8 @@ dps_output.as_dataframe()[list(dps_model.responses.keys())].to_csv('dps_output_o
 #dps_output=load("dps_output.csv")[1]
 #for i in range(len(dps_output)):
 #    dps_output[i]['policy']=ast.literal_eval(dps_output[i]['policy'])
-#SOWs=load("SOWs.csv")[1]
-#reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
+SOWs=load("SOWs.csv")[1]
+reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
 #
 #for i in range(len(reevaluation_dps)):
 #    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
