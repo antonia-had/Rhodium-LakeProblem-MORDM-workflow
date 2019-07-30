@@ -9,6 +9,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq as root
 from rhodium import *
+from platypus import wrappers
+import ast
 
 # Example using direct policy search (DPS) following the approach of [1]:
 #
@@ -22,7 +24,6 @@ from rhodium import *
 # creating a class in this manner aids re-usability.
 class CubicDPSLever(Lever):
     
-    def __init__(self, name, length = 1, c_bounds = (-2, 2), r_bounds = (0, 2)):
     def __init__(self, name, length = 1, c_bounds = (-2, 2), r_bounds = (0.000001, 2)):
         super(CubicDPSLever, self).__init__(name)
         self.length = length
