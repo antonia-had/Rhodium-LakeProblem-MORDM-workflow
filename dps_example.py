@@ -92,8 +92,6 @@ def lake_problem_dps(policy,  # the DPS policy
     decisions = np.zeros((steps,))
     average_daily_P = np.zeros((steps,))
     reliability = 0.0
-    utility = 0.0
-    inertia = 0.0
 
     for _ in range(nsamples):
         X[0] = 0.0
@@ -108,14 +106,12 @@ def lake_problem_dps(policy,  # the DPS policy
             X[t] = (1-b)*X[t-1] + X[t-1]**q/(1+X[t-1]**q) + decisions[t-1] + natural_inflows[t-1]
             average_daily_P[t] += X[t]/float(nsamples)
         
-        reliability += np.sum(X < Pcrit)/float(steps)
-        utility += np.sum(alpha*decisions*np.power(delta,np.arange(steps)))
-        inertia += np.sum(np.diff(decisions) > -0.02)/float(steps-1)
+        reliability += np.sum(X < Pcrit)/float(nsamples*steps)
+
       
     max_P = np.max(average_daily_P)
-    reliability /= float(nsamples)
-    utility /= float(nsamples)
-    inertia /= float(nsamples)
+    utility = np.sum(alpha*decisions*np.power(delta,np.arange(steps)))
+    inertia = np.sum(np.diff(decisions) > -0.02)/float(steps-1)
     
     return (max_P, utility, inertia, reliability)
 
@@ -145,25 +141,25 @@ dps_model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("stdev", 0.001, 0.005),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
-dps_output = optimize(dps_model, "BorgMOEA", 50000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
+dps_output = optimize(dps_model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
 dps_output.save("dps_output.csv") 
 dps_output.as_dataframe()[list(dps_model.responses.keys())].to_csv('dps_output_objectives.csv')
 
 #dps_output=load("dps_output.csv")[1]
 #for i in range(len(dps_output)):
 #    dps_output[i]['policy']=ast.literal_eval(dps_output[i]['policy'])
-SOWs=load("SOWs.csv")[1]
-reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
-
-for i in range(len(reevaluation_dps)):
-    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
-
-robustness_dps = np.zeros(len(dps_output))
-
-for i in range(len(robustness_dps)):
-    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
-    
-np.savetxt("robustness_dps.txt",robustness_dps)
+#SOWs=load("SOWs.csv")[1]
+#reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
+#
+#for i in range(len(reevaluation_dps)):
+#    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
+#
+#robustness_dps = np.zeros(len(dps_output))
+#
+#for i in range(len(robustness_dps)):
+#    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+#    
+#np.savetxt("robustness_dps.txt",robustness_dps)
 
 
  

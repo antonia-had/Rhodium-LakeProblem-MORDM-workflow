@@ -81,7 +81,7 @@ model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
 
-output = optimize(model, "BorgMOEA", 50000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
+output = optimize(model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
 
 #Save optimization results 
 output.save("output.csv") 
@@ -92,16 +92,30 @@ SOWs = sample_lhs(model, 1000)
 SOWs.save("SOWs.csv") 
 reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
 
-for i in range(len(reevaluation)):
-    reevaluation[i].save("reevaluation_"+str(i)+".csv")
-
-robustness = np.zeros(len(output))
-
-for i in range(len(robustness)):
-    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
-    
-np.savetxt("robustness.txt.",robustness)
-
+#for i in range(len(reevaluation)):
+#    reevaluation[i].save("reevaluation_"+str(i)+".csv")
+#
+#robustness = np.zeros(len(output))
+#
+#for i in range(len(robustness)):
+#    robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
+#    
+#np.savetxt("robustness.txt.",robustness)
+#
+#policy = output.find_max("reliability")
+#
+#sobol_results = sa(model, "reliability", policy=policy, method="sobol", nsamples=10000)
+#
+#scenario_discovery = evaluate(model, update(SOWs, policy))
+#classification = scenario_discovery.apply("'Reliable' if reliability >= 0.95 and utility >=0.2 else 'Unreliable'")
+#p = Prim(scenario_discovery, classification, include=model.uncertainties.keys(), coi="Reliable")
+#box = p.find_box()
+#fig = box.show_tradeoff()
+#
+#
+#c = Cart(scenario_discovery, classification, include=model.uncertainties.keys(), min_samples_leaf=50)
+#c.show_tree()
+#
 #dps_output=load("dps_output.csv")[1]
 #
 #for i in range(len(output)):
