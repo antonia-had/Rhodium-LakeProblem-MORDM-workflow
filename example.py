@@ -81,16 +81,16 @@ model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
 
-output = optimize(model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
+#output = optimize(model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
 
 #Save optimization results 
-output.save("output.csv") 
-#Save only the objectives from the optimization results 
-output.as_dataframe()[list(model.responses.keys())].to_csv('output_objectives.csv')
-
-SOWs = sample_lhs(model, 1000)
-SOWs.save("SOWs.csv") 
-reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
+#output.save("output.csv") 
+##Save only the objectives from the optimization results 
+#output.as_dataframe()[list(model.responses.keys())].to_csv('output_objectives.csv')
+#
+#SOWs = sample_lhs(model, 1000)
+#SOWs.save("SOWs.csv") 
+#reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
 
 #for i in range(len(reevaluation)):
 #    reevaluation[i].save("reevaluation_"+str(i)+".csv")
@@ -116,16 +116,18 @@ reevaluation = [evaluate(model, update(SOWs, policy)) for policy in output]
 #c = Cart(scenario_discovery, classification, include=model.uncertainties.keys(), min_samples_leaf=50)
 #c.show_tree()
 #
-#dps_output=load("dps_output.csv")[1]
-#
-#for i in range(len(output)):
-#    output[i]['strategy']=1
-#for i in range(len(dps_output)):
-#    dps_output[i]['strategy']=0
-#
-#merged = DataSet(output+dps_output)
-#
-#J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
+dps_output=load("dps_output.csv")[1]
+output=load("output.csv")[1]
+
+
+for i in range(len(output)):
+    output[i]['strategy']=1
+for i in range(len(dps_output)):
+    dps_output[i]['strategy']=0
+
+merged = DataSet(output+dps_output)
+
+J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
 
 # 
 ##colnames = ['sol_no']+list(dps_model.responses.keys())+['strategy']    
