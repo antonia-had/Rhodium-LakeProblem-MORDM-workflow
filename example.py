@@ -80,28 +80,13 @@ model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("stdev", 0.001, 0.005),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
-# Prepare the cache for storing intermediate results
-setup_cache(file="example.cache")
 
-# Optimize the model or get cached results if they exist.  Note that the
-# call to optimize is wrapped in a lambda function to enable lazy evaluation.
-output = cache("output", lambda: optimize(model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001]))
+output = optimize(model, "BorgMOEA", 50000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
 
 #Save optimization results 
 output.save("output.csv") 
 #Save only the objectives from the optimization results 
 output.as_dataframe()[list(model.responses.keys())].to_csv('output_objectives.csv')
-
-dps_output=load("dps_output.csv")[1]
-
-for i in range(len(output)):
-    output[i]['strategy']=1
-for i in range(len(dps_output)):
-    dps_output[i]['strategy']=0
-
-merged = DataSet(output+dps_output)
-
-J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
 
 SOWs = sample_lhs(model, 1000)
 SOWs.save("SOWs.csv") 
@@ -114,6 +99,20 @@ robustness = np.zeros(len(output))
 
 for i in range(len(robustness)):
     robustness[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation[i]])
+    
+np.savetxt("robustness.txt.",robustness)
+
+#dps_output=load("dps_output.csv")[1]
+#
+#for i in range(len(output)):
+#    output[i]['strategy']=1
+#for i in range(len(dps_output)):
+#    dps_output[i]['strategy']=0
+#
+#merged = DataSet(output+dps_output)
+#
+#J3(merged.as_dataframe(list(model.responses.keys())+['strategy']))
+
 # 
 ##colnames = ['sol_no']+list(dps_model.responses.keys())+['strategy']    
 ##merged_sorted = load('overallreference.csv', names=colnames)[1]

@@ -145,8 +145,7 @@ dps_model.uncertainties = [UniformUncertainty("b", 0.1, 0.45),
                        UniformUncertainty("stdev", 0.001, 0.005),
                        UniformUncertainty("delta", 0.93, 0.99)]
 
-setup_cache(file="dps_example.cache")
-dps_output = cache("dps_output", lambda: optimize(dps_model, "BorgMOEA", 20000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001]))
+dps_output = optimize(dps_model, "BorgMOEA", 50000, module="platypus.wrappers", epsilons=[0.01, 0.01, 0.0001, 0.0001])
 dps_output.save("dps_output.csv") 
 dps_output.as_dataframe()[list(dps_model.responses.keys())].to_csv('dps_output_objectives.csv')
 
@@ -155,14 +154,17 @@ dps_output.as_dataframe()[list(dps_model.responses.keys())].to_csv('dps_output_o
 #    dps_output[i]['policy']=ast.literal_eval(dps_output[i]['policy'])
 SOWs=load("SOWs.csv")[1]
 reevaluation_dps = [evaluate(dps_model, update(SOWs, policy)) for policy in dps_output]
-#
-#for i in range(len(reevaluation_dps)):
-#    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
-#
-#robustness_dps = np.zeros(len(dps_output))
-#
-#for i in range(len(robustness_dps)):
-#    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+
+for i in range(len(reevaluation_dps)):
+    reevaluation_dps[i].save("reevaluation_dps_"+str(i)+".csv")
+
+robustness_dps = np.zeros(len(dps_output))
+
+for i in range(len(robustness_dps)):
+    robustness_dps[i]=np.mean([1 if SOW['reliability']>=0.95 and SOW['utility']>=0.2 else 0 for SOW in reevaluation_dps[i]])
+    
+np.savetxt("robustness_dps.txt",robustness_dps)
+
 
  
     
